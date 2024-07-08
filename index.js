@@ -10,10 +10,19 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+app.use((req, res, next) => {
+    console.log(`Request URL: ${req.url}`);
+    next();
+});
+
 app.use('/chat', promptRoutes);
 
 app.get('/hello', (req, res) => {
     res.send('Hello World');
+});
+
+app.use((req, res) => {
+    res.status(404).send('Not Found');
 });
 
 app.listen(port, () => {
