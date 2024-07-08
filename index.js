@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use((req, res, next) => {
-    console.log(`Request URL: ${req.url}`);
+    console.log(`Request Method: ${req.method}, Request URL: ${req.url}`);
     next();
 });
 
@@ -22,6 +22,7 @@ app.get('/hello', (req, res) => {
 });
 
 app.use((req, res) => {
+    console.log(`404 Not Found: ${req.url}`);
     res.status(404).send('Not Found');
 });
 
