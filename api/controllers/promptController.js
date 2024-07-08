@@ -1,9 +1,7 @@
 const axios = require('axios');
 const multer = require('multer');
-const fs = require('fs');
-const path = require('path');
 
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ storage: multer.memoryStorage() });
 
 exports.prompt = async (req, res) => {
     const userMessage = req.body.message;
@@ -15,14 +13,7 @@ exports.prompt = async (req, res) => {
     }
 
     if (req.file) {
-        const filePath = path.join(__dirname, '../../', req.file.path);
-        try {
-            fileContent = fs.readFileSync(filePath, 'utf-8');
-            fs.unlinkSync(filePath);  // Remove the file after reading
-        } catch (error) {
-            console.error('Error reading file:', error);
-            return res.status(500).json({ error: 'Error reading file' });
-        }
+        fileContent = req.file.buffer.toString('utf-8');
     }
 
     const messages = [
