@@ -27,7 +27,7 @@ exports.prompt = async (req, res) => {
 
     try {
         const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-            model: 'gpt-4o',
+            model: 'code-davinci-002',
             messages: messages
         }, {
             headers: {
