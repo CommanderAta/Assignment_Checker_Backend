@@ -17,7 +17,7 @@ exports.prompt = async (req, res) => {
     }
 
     const messages = [
-        { role: "system", content: "You are an intelligent assistant." },
+        { role: "system", content: "You are an expert assistant in the R programming language, specializing in answering coding questions and providing solutions in R." },
         { role: "user", content: userMessage }
     ];
 
