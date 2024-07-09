@@ -17,7 +17,7 @@ app.use((req, res, next) => {
 
 app.use('/chat', promptRoutes);
 
-app.get('/hello', (req, res) => {
+app.get('/', (req, res) => {
     res.send('Hello World');
 });
 
