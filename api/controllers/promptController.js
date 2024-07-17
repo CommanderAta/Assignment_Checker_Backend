@@ -7,43 +7,57 @@ exports.prompt = async (req, res) => {
     const userMessage = req.body.message;
     let questions = [];
     let answers = [];
+    let marks = [];
+    let feedbacks = [];
 
     if (!userMessage) {
         console.error('Message field is required');
         return res.status(400).json({ error: 'Message field is required' });
     }
 
-    if (req.files) {
-        req.files.forEach(file => {
-            const fileContent = file.buffer.toString('utf-8');
-            const lines = fileContent.split('\n');
-            let currentQuestion = '';
-            let currentAnswer = '';
+    if (req.file) {
+        const fileContent = req.file.buffer.toString('utf-8');
+        const lines = fileContent.split('\n');
+        let currentQuestion = '';
+        let currentAnswer = '';
+        let questionNumber = 0;
 
-            lines.forEach(line => {
-                if (line.startsWith('# QUESTION')) {
-                    if (currentQuestion && currentAnswer) {
-                        questions.push(currentQuestion.trim());
-                        answers.push(currentAnswer.trim());
-                    }
-                    currentQuestion = line.replace('# QUESTION', '').trim();
-                    currentAnswer = '';
-                } else if (line.startsWith('# ANSWER')) {
-                    currentAnswer += line.replace('# ANSWER', '').trim() + '\n';
-                } else {
-                    currentAnswer += line + '\n';
+        lines.forEach(line => {
+            if (line.startsWith('# QUESTION')) {
+                if (currentQuestion && currentAnswer) {
+                    questions.push(currentQuestion.trim());
+                    answers.push(currentAnswer.trim());
                 }
-            });
-
-            if (currentQuestion && currentAnswer) {
-                questions.push(currentQuestion.trim());
-                answers.push(currentAnswer.trim());
+                currentQuestion = line.replace('# QUESTION', '').trim();
+                currentAnswer = '';
+                questionNumber++;
+            } else if (line.startsWith('# ANSWER')) {
+                currentAnswer += line.replace('# ANSWER', '').trim() + '\n';
+            } else if (line.startsWith('## ')) {
+                if (currentQuestion && currentAnswer) {
+                    questions.push(currentQuestion.trim());
+                    answers.push(currentAnswer.trim());
+                }
+                currentQuestion = `Subpart of Question ${questionNumber}: ` + line.replace('## ', '').trim();
+                currentAnswer = '';
+            } else if (line.startsWith('# ')) {
+                if (currentQuestion && currentAnswer) {
+                    questions.push(currentQuestion.trim());
+                    answers.push(currentAnswer.trim());
+                }
+                currentQuestion = line.replace('# ', '').trim();
+                currentAnswer = '';
+            } else {
+                currentAnswer += line + '\n';
             }
         });
+
+        if (currentQuestion && currentAnswer) {
+            questions.push(currentQuestion.trim());
+            answers.push(currentAnswer.trim());
+        }
     }
 
-    let marks = [];
-    let feedbacks = [];
     for (let i = 0; i < questions.length; i++) {
         const question = questions[i];
         const answer = answers[i];
