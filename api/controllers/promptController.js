@@ -32,7 +32,7 @@ exports.prompt = async (req, res) => {
                 currentAnswer = '';
                 questionNumber++;
             } else if (line.startsWith('# ANSWER')) {
-                currentAnswer += line.replace('# ANSWER', '').trim() + '\n';
+                currentAnswer += line.replace('# ANSWER', '').trim() + '\n ';
             } else if (line.startsWith('## ')) {
                 if (currentQuestion && currentAnswer) {
                     questions.push(currentQuestion.trim());
@@ -48,7 +48,7 @@ exports.prompt = async (req, res) => {
                 currentQuestion = line.replace('# ', '').trim();
                 currentAnswer = '';
             } else {
-                currentAnswer += line + '\n';
+                currentAnswer += line + '\n ';
             }
         });
 
@@ -62,9 +62,12 @@ exports.prompt = async (req, res) => {
         const question = questions[i];
         const answer = answers[i];
         const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-            model: 'gpt-3.5-turbo',
+            model: 'gpt-4o',
             messages: [
-                { role: "system", content: "You are an expert assistant in the R programming language, specializing in checking and grading assignments. You provide detailed feedback on incorrect solutions and mark assignments out of 10 as fast as possible." },
+                {
+                    role: "system",
+                    content: "You are an expert assistant in the R programming language. Please check the following code in a very basic way, as it is submitted by a beginner-level coder. Provide simple and clear feedback, focusing on fundamental concepts. If the answer is correct, do not mention any errors, mistakes, or issues."
+                },
                 { role: "user", content: `Question: ${question}\nAnswer: ${answer}` }
             ]
         }, {
@@ -75,9 +78,24 @@ exports.prompt = async (req, res) => {
         });
 
         const reply = response.data.choices[0].message.content;
-        const mark = reply.includes('correct') ? 1 : 0;
+        let mark = 0;
+        let feedbackLine = '';
+
+        const lowerCaseReply = reply.toLowerCase();
+        if (lowerCaseReply.includes('incorrect') || lowerCaseReply.includes('error') || lowerCaseReply.includes('mistake') || lowerCaseReply.includes('issue')) {
+            mark = 0;
+            feedbackLine = `Question ${i + 1}: Incorrect. Feedback: ${reply.replace(/\n/g, '\n ')}`;
+        } else if (lowerCaseReply.includes('correct') || lowerCaseReply.includes('right') || lowerCaseReply.includes('good job') || lowerCaseReply.includes('well done')) {
+            mark = 1;
+            feedbackLine = `Question ${i + 1}: Correct. Feedback: ${reply.replace(/\n/g, '\n ')}`;
+        } else {
+            // Default to 0 if we cannot determine correctness explicitly
+            mark = 0;
+            feedbackLine = `Question ${i + 1}: Cannot determine correctness. Feedback: ${reply.replace(/\n/g, '\n ')}`;
+        }
+
         marks.push(mark);
-        feedbacks.push(reply);
+        feedbacks.push(feedbackLine);
     }
 
     const totalMarks = marks.reduce((sum, mark) => sum + mark, 0);
