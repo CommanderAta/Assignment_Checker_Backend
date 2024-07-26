@@ -13,7 +13,13 @@ const port = process.env.PORT || 3000;
 
 db.connect(); // Initialize MongoDB connection
 
-app.use(cors());
+const corsOptions = {
+    origin: '*', // Allow all origins
+    methods: '*', // Allow all methods
+    allowedHeaders: 'Content-Type, Authorization, X-Requested-With, Accept, Origin, User-Agent', // List all headers you expect
+  };
+  
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use((req, res, next) => {
