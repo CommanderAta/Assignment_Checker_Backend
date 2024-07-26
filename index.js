@@ -13,7 +13,13 @@ const port = process.env.PORT || 3000;
 
 db.connect(); // Initialize MongoDB connection
 
-app.use(cors());
+const corsOptions = {
+    origin: ['http://localhost:3000', 'https://assignment-checker-front-end.vercel.app'], // Allow both local and Vercel
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  };
+  
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use((req, res, next) => {
