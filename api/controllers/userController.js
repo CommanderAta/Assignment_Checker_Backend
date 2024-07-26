@@ -55,5 +55,15 @@ const getUserRole = async (req, res) => {
     }
 };
   
-  module.exports = { signup, login, getUserRole };
+const getUserProfile = async (req, res) => {
+    try {
+      const user = await User.findById(req.user.userId);
+      res.status(200).json(user);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      res.status(500).json({ error: 'Error fetching user profile' });
+    }
+  };
+  
+module.exports = { signup, login, getUserRole, getUserProfile };
   

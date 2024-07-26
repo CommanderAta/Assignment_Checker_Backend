@@ -17,7 +17,7 @@ const createCourse = async (req, res) => {
 
 const getCourses = async (req, res) => {
     try {
-        const courses = await Course.find({ professor: req.user.userId });
+        const courses = await Course.find();
         res.status(200).json(courses);
     } catch (error) {
         console.error('Error fetching courses:', error);

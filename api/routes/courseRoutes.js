@@ -5,6 +5,6 @@ const { authMiddleware, professorMiddleware } = require('../middleware/authMiddl
 const router = express.Router();
 
 router.post('/', authMiddleware, professorMiddleware, createCourse);
-router.get('/', authMiddleware, professorMiddleware, getCourses);
+router.get('/', authMiddleware, getCourses); // Removed professorMiddleware here
 
 module.exports = router;

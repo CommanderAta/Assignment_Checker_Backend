@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const assessmentSchema = new Schema({
     title: { type: String, required: true },
     content: { type: String, required: true },
-    student: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    course: { type: Schema.Types.ObjectId, ref: 'Course', required: true },
     createdAt: { type: Date, default: Date.now }
 });
 

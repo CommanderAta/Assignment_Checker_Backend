@@ -6,6 +6,11 @@ const submitSubmission = async (req, res) => {
     const studentId = req.user.userId;
 
     try {
+        const existingSubmission = await Submission.findOne({ assessment: assessmentId, student: studentId });
+        if (existingSubmission) {
+            return res.status(400).json({ error: 'You have already submitted for this assessment' });
+        }
+
         const assessment = await Assessment.findById(assessmentId);
         if (!assessment) {
             return res.status(404).json({ error: 'Assessment not found' });
@@ -23,9 +28,17 @@ const submitSubmission = async (req, res) => {
 
 const getSubmissions = async (req, res) => {
     const { assessmentId } = req.params;
+    const userId = req.user.userId;
+    const userRole = req.user.role;
 
     try {
-        const submissions = await Submission.find({ assessment: assessmentId }).populate('student', 'username');
+        let submissions;
+        if (userRole === 'professor') {
+            submissions = await Submission.find({ assessment: assessmentId }).populate('student', 'username');
+        } else {
+            submissions = await Submission.find({ assessment: assessmentId, student: userId }).populate('student', 'username');
+        }
+
         res.status(200).json(submissions);
     } catch (error) {
         console.error('Error fetching submissions:', error);
@@ -33,4 +46,21 @@ const getSubmissions = async (req, res) => {
     }
 };
 
-module.exports = { submitSubmission, getSubmissions };
+// Add this function
+const getSubmissionDetails = async (req, res) => {
+    const { submissionId } = req.params;
+
+    try {
+        const submission = await Submission.findById(submissionId).populate('student', 'username');
+        if (!submission) {
+            return res.status(404).json({ error: 'Submission not found' });
+        }
+
+        res.status(200).json(submission);
+    } catch (error) {
+        console.error('Error fetching submission details:', error);
+        res.status(500).json({ error: 'Error fetching submission details' });
+    }
+};
+
+module.exports = { submitSubmission, getSubmissions, getSubmissionDetails };

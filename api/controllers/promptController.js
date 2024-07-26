@@ -1,10 +1,13 @@
 const axios = require('axios');
 const multer = require('multer');
+const Submission = require('../models/submissionModel'); // Import the submission model
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 exports.prompt = async (req, res) => {
     const userMessage = req.body.message;
+    const assessmentId = req.body.assessmentId;
+    const studentId = req.user.userId; // Ensure req.user is available
     let questions = [];
     let answers = [];
     let marks = [];
@@ -99,14 +102,34 @@ exports.prompt = async (req, res) => {
     }
 
     const totalMarks = marks.reduce((sum, mark) => sum + mark, 0);
+    const feedbackContent = feedbacks.join('\n');
 
-    res.json({
-        questions: questions,
-        answers: answers,
-        marks: marks,
-        feedbacks: feedbacks,
-        totalMarks: totalMarks
-    });
+    try {
+        const existingSubmission = await Submission.findOne({ assessment: assessmentId, student: studentId });
+        if (existingSubmission) {
+            return res.status(400).json({ error: 'You have already submitted for this assessment' });
+        }
+
+        const newSubmission = new Submission({
+            content: req.file.buffer.toString('utf-8'),
+            student: studentId,
+            assessment: assessmentId,
+            marks: totalMarks,
+            feedback: feedbackContent
+        });
+        await newSubmission.save();
+
+        res.json({
+            questions: questions,
+            answers: answers,
+            marks: marks,
+            feedbacks: feedbacks,
+            totalMarks: totalMarks
+        });
+    } catch (error) {
+        console.error('Error saving submission:', error);
+        res.status(500).json({ error: 'Failed to save submission' });
+    }
 };
 
 module.exports.upload = upload;

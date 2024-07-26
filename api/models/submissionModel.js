@@ -5,6 +5,8 @@ const submissionSchema = new Schema({
     content: { type: String, required: true },
     student: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     assessment: { type: Schema.Types.ObjectId, ref: 'Assessment', required: true },
+    marks: { type: Number, default: 0 },
+    feedback: { type: String, default: '' },
     createdAt: { type: Date, default: Date.now }
 });
 
