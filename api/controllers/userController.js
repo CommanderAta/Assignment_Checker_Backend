@@ -1,6 +1,7 @@
 const User = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const Course = require('../models/courseModel');
 
 const signup = async (req, res) => {
     const { username, password, role } = req.body;
@@ -64,6 +65,53 @@ const getUserProfile = async (req, res) => {
       res.status(500).json({ error: 'Error fetching user profile' });
     }
   };
+
+  const getEnrolledCourses = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.userId).populate('enrolledCourses');
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.status(200).json(user.enrolledCourses);
+    } catch (error) {
+        console.error('Error fetching enrolled courses:', error);
+        res.status(500).json({ error: 'Error fetching enrolled courses' });
+    }
+};
+
+const enrollInCourse = async (req, res) => {
+    const { courseId } = req.body;
+    const userId = req.user.userId;
+
+    console.log('Course ID:', courseId); // Log the course ID
+    console.log('User ID:', userId); // Log the user ID
   
-module.exports = { signup, login, getUserRole, getUserProfile };
+
+    try {
+        const course = await Course.findOne({ courseId });
+        if (!course) {
+            return res.status(404).json({ error: 'Course not found' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (user.enrolledCourses.includes(course._id)) {
+            return res.status(400).json({ error: 'Already enrolled in this course' });
+        }
+
+        user.enrolledCourses.push(course._id);
+        await user.save();
+
+        res.status(200).json({ message: 'Enrolled in course successfully' });
+    } catch (error) {
+        console.error('Error enrolling in course:', error);
+        res.status(500).json({ error: 'Error enrolling in course' });
+    }
+};
+
+  
+module.exports = { signup, login, getUserRole, getUserProfile, getEnrolledCourses, enrollInCourse };
   

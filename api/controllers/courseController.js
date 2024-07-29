@@ -25,9 +25,31 @@ const createCourse = async (req, res) => {
     }
 };
 
+const updateCourse = async (req, res) => {
+    const { courseId } = req.params;
+    const { name, briefDescription, courseDescription, outline, learningOutcomes, type } = req.body;
+
+    try {
+        const updatedCourse = await Course.findByIdAndUpdate(
+            courseId,
+            { name, briefDescription, courseDescription, outline, learningOutcomes, type },
+            { new: true }
+        );
+
+        if (!updatedCourse) {
+            return res.status(404).json({ error: 'Course not found' });
+        }
+
+        res.status(200).json({ message: 'Course updated successfully', course: updatedCourse });
+    } catch (error) {
+        console.error('Error updating course:', error);
+        res.status(500).json({ error: 'Error updating course' });
+    }
+};
+
 const getCourses = async (req, res) => {
     try {
-        const courses = await Course.find({ professor: req.user.userId });
+        const courses = await Course.find().populate('professor', 'username');
         res.status(200).json(courses);
     } catch (error) {
         console.error('Error fetching courses:', error);
@@ -52,7 +74,7 @@ const getCourseById = async (req, res) => {
 
 const generateCourseId = async (name) => {
     const prefix = name.substring(0, 3).toUpperCase();
-    const courses = await Course.find({ name: new RegExp(`^${prefix}`) }).sort({ courseId: -1 }).limit(1);
+    const courses = await Course.find({ courseId: new RegExp(`^${prefix}`) }).sort({ courseId: -1 }).limit(1);
     let courseId = 100;
     if (courses.length > 0) {
         const lastCourseId = parseInt(courses[0].courseId.substring(3));
@@ -61,4 +83,4 @@ const generateCourseId = async (name) => {
     return `${prefix}${courseId}`;
 };
 
-module.exports = { createCourse, getCourses, getCourseById };
+module.exports = { createCourse, updateCourse, getCourses, getCourseById };
