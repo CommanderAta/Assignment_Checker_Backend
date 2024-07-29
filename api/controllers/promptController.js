@@ -5,7 +5,7 @@ const Submission = require('../models/submissionModel'); // Import the submissio
 const upload = multer({ storage: multer.memoryStorage() });
 
 exports.prompt = async (req, res) => {
-    const userMessage = req.body.message;
+    const userMessage = 'Check';
     const assessmentId = req.body.assessmentId;
     const studentId = req.user.userId; // Ensure req.user is available
     let questions = [];
